@@ -1,0 +1,1 @@
+console.log("DevSecOps portfolio app placeholder");

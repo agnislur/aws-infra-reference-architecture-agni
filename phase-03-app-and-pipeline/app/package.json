@@ -1,0 +1,9 @@
+{
+  "name": "devsecops-portfolio-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Application scaffold for the DevSecOps portfolio",
+  "scripts": {
+    "start": "node src/index.js"
+  }
+}

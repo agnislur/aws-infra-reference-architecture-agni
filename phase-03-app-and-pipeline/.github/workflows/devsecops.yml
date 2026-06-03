@@ -1,0 +1,17 @@
+name: DevSecOps Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  terraform-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Terraform structure
+        run: echo "Add terraform fmt/validate, SAST, DAST, and apply steps here"
