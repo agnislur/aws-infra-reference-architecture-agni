@@ -9,12 +9,12 @@ terraform {
 }
 
 provider "aws" {
-  region = "ap-southeast-1" # Region Singapura
+  region = "ap-southeast-1"
 
   default_tags {
     tags = {
-      Project     = "DevSecOps-Portfolio"
-      Environment = "Development"
+      Project     = "DevSecOps-Masterpiece"
+      Phase       = "01-Monolithic-HA"
       ManagedBy   = "Terraform"
     }
   }

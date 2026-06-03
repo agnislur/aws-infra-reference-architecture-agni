@@ -1,1 +1,22 @@
-# Phase 1 database resources go here.
+resource "aws_db_subnet_group" "db_subnet_group" {
+  name       = "phase1-db-subnet-group"
+  subnet_ids = [aws_subnet.private_db_1a.id, aws_subnet.private_db_1b.id]
+  tags       = { Name = "phase1-db-subnet-group" }
+}
+
+resource "aws_db_instance" "main_db" {
+  allocated_storage      = 20
+  max_allocated_storage  = 100
+  engine                 = "mysql"
+  engine_version         = "8.0"
+  instance_class         = "db.t3.micro" 
+  identifier             = "phase1-portfolio-db"
+  username               = "dbadmin"
+  password               = "Phase1SecurePassword2026!" 
+  db_subnet_group_name   = aws_db_subnet_group.db_subnet_group.name
+  vpc_security_group_ids = [aws_security_group.db_sg.id]
+  
+  multi_az               = false 
+  
+  skip_final_snapshot    = true
+}
