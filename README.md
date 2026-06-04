@@ -13,3 +13,10 @@ Struktur utamanya:
 - [phase-03-app-and-pipeline](phase-03-app-and-pipeline)
 
 Catatan belajar cloud, AWS, dan DevSecOps akan mengikuti perjalanan dari phase 1 sampai phase 3.
+
+## Notes
+ 
+- feat/ or bugfix/ : provisioning resource or new architecture 
+- fix/ or bugfix/ : bug fix error or gap security 
+- docs/ : new in README.md; architecture diagram; or notes learn 
+- chore/ : maintancence or housekeeping not change infrastructure like new version in provider aws or clean .gitignore.
