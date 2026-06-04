@@ -1,0 +1,8 @@
+# Mengabaikan file yang berisi kredensial sensitif
+*.tfvars
+terraform.tfvars
+
+# Mengabaikan file state lokal Terraform (opsional tapi sangat disarankan)
+.terraform/
+*.tfstate
+*.tfstate.backup
