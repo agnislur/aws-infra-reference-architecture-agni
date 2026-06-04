@@ -11,8 +11,8 @@ resource "aws_db_instance" "main_db" {
   engine_version         = "8.0"
   instance_class         = "db.t3.micro" 
   identifier             = "phase1-portfolio-db"
-  username               = "dbadmin"
-  password               = "Phase1SecurePassword2026!" 
+  username               = var.db_username
+  password               = var.db_password
   db_subnet_group_name   = aws_db_subnet_group.db_subnet_group.name
   vpc_security_group_ids = [aws_security_group.db_sg.id]
   
