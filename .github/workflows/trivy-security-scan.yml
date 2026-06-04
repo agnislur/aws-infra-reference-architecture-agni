@@ -1,0 +1,176 @@
+name: "🔒 Security Scan - Trivy"
+
+on:
+  push:
+    branches: ["main", "feat/**", "fix/**", "bugfix/**"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    # Setiap Senin jam 08:00 WIB (01:00 UTC)
+    - cron: "0 1 * * 1"
+  workflow_dispatch: # bisa trigger manual dari tab Actions
+
+permissions:
+  contents: read
+  security-events: write   # wajib buat upload ke GitHub Security tab
+  pull-requests: write     # buat komentar di PR
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────
+  # JOB 1: Scan Terraform IaC Misconfiguration (semua phase)
+  # ─────────────────────────────────────────────────────────────────
+  trivy-iac-scan:
+    name: "IaC Misconfiguration Scan"
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        phase:
+          - path: "phase-01-monolithic-ha"
+            label: "Phase 01 - Monolithic HA"
+          - path: "phase-02-modular-infra"
+            label: "Phase 02 - Modular Infra"
+          - path: "phase-03-app-and-pipeline"
+            label: "Phase 03 - App & Pipeline"
+
+    steps:
+      - name: "📥 Checkout repository"
+        uses: actions/checkout@v4
+
+      - name: "🔍 Run Trivy IaC scan - ${{ matrix.phase.label }}"
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: "config"
+          scan-ref: "${{ matrix.phase.path }}"
+          format: "sarif"
+          output: "trivy-${{ matrix.phase.path }}.sarif"
+          severity: "CRITICAL,HIGH,MEDIUM"
+          exit-code: "0"        # jangan fail dulu, biar bisa upload hasil
+          hide-progress: false
+
+      - name: "📤 Upload SARIF ke GitHub Security tab"
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: "trivy-${{ matrix.phase.path }}.sarif"
+          category: "trivy-iac-${{ matrix.phase.path }}"
+
+      - name: "📊 Print hasil scan (human-readable)"
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: "config"
+          scan-ref: "${{ matrix.phase.path }}"
+          format: "table"
+          severity: "CRITICAL,HIGH,MEDIUM"
+          exit-code: "1"        # di sini baru fail kalau ada CRITICAL/HIGH/MEDIUM
+
+  # ─────────────────────────────────────────────────────────────────
+  # JOB 2: Scan File System (cari secrets, CVE di dependencies)
+  # ─────────────────────────────────────────────────────────────────
+  trivy-fs-scan:
+    name: "Filesystem & Secret Scan"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "📥 Checkout repository"
+        uses: actions/checkout@v4
+
+      - name: "🔍 Run Trivy filesystem scan"
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "sarif"
+          output: "trivy-fs.sarif"
+          severity: "CRITICAL,HIGH"
+          scanners: "vuln,secret,misconfig"
+          exit-code: "0"
+
+      - name: "📤 Upload SARIF hasil filesystem scan"
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: "trivy-fs.sarif"
+          category: "trivy-filesystem"
+
+      - name: "🔑 Scan khusus untuk leaked secrets"
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "table"
+          scanners: "secret"
+          exit-code: "1"        # WAJIB fail kalau ada secret ketemu
+
+  # ─────────────────────────────────────────────────────────────────
+  # JOB 3: Summary komentar di PR (biar keliatan langsung)
+  # ─────────────────────────────────────────────────────────────────
+  trivy-pr-comment:
+    name: "PR Comment Summary"
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: [trivy-iac-scan, trivy-fs-scan]
+
+    steps:
+      - name: "📥 Checkout repository"
+        uses: actions/checkout@v4
+
+      - name: "🔍 Trivy scan untuk PR comment"
+        uses: aquasecurity/trivy-action@0.28.0
+        id: trivy-results
+        with:
+          scan-type: "config"
+          scan-ref: "."
+          format: "table"
+          severity: "CRITICAL,HIGH,MEDIUM"
+          exit-code: "0"
+          output: "trivy-pr-summary.txt"
+
+      - name: "💬 Post komentar ke PR"
+        uses: actions/github-script@v7
+        if: always()
+        with:
+          script: |
+            const fs = require('fs');
+            let summary = '';
+            try {
+              summary = fs.readFileSync('trivy-pr-summary.txt', 'utf8');
+            } catch (e) {
+              summary = 'Tidak ada output dari Trivy.';
+            }
+
+            const body = [
+              '## 🔒 Trivy Security Scan Results',
+              '',
+              '> Scan dijalankan otomatis oleh GitHub Actions pada PR ini.',
+              '',
+              '```',
+              summary.length > 3000 ? summary.substring(0, 3000) + '\n... (truncated)' : summary,
+              '```',
+              '',
+              `**Lihat detail lengkap** → [Security tab](https://github.com/${{ github.repository }}/security/code-scanning)`,
+            ].join('\n');
+
+            // Hapus komentar lama biar ga spam
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            for (const comment of comments.data) {
+              if (comment.body.includes('🔒 Trivy Security Scan Results')) {
+                await github.rest.issues.deleteComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: comment.id,
+                });
+              }
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body,
+            });
