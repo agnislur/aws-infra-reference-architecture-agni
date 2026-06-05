@@ -8,6 +8,10 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "Asia/Jakarta"
+    groups:
+      terraform-update:
+          patterns:
+            - "*"
     labels:
       - "dependencies"
       - "terraform"
@@ -23,6 +27,10 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "Asia/Jakarta"
+    groups:
+      terraform-update:
+          patterns:
+            - "*"
     labels:
       - "dependencies"
       - "terraform"
@@ -38,6 +46,10 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "Asia/Jakarta"
+    groups:
+      terraform-update:
+          patterns:
+            - "*" 
     labels:
       - "dependencies"
       - "terraform"
@@ -54,6 +66,10 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "Asia/Jakarta"
+    groups:
+      action-update:
+          patterns:
+            - "*"      
     labels:
       - "dependencies"
       - "github-actions"
