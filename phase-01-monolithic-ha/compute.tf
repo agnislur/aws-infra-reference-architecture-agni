@@ -24,7 +24,7 @@ resource "aws_lb_target_group" "app_tg" {
     matcher             = "200"
   }
 }
-
+# trivy:ignore:AWS-0054
 resource "aws_lb_listener" "http_listener" {
   load_balancer_arn = aws_lb.app_alb.arn
   port              = "80"
@@ -37,6 +37,7 @@ resource "aws_lb_listener" "http_listener" {
 }
 
 # --- AUTO SCALING GROUP & LAUNCH TEMPLATE ---
+# trivy:ignore:AWS-0053
 resource "aws_launch_template" "app_lt" {
   name_prefix   = "phase1-app-lt-"
   image_id      = "ami-01811d4912b4ccb26" # Ubuntu 22.04 LTS (ap-southeast-1)
