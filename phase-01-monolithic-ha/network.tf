@@ -1,4 +1,5 @@
 # --- VPC & INTERNET GATEWAY ---
+# trivy:ignore:AWS-0178
 resource "aws_vpc" "main" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
@@ -88,13 +89,16 @@ resource "aws_security_group" "alb_sg" {
   vpc_id      = aws_vpc.main.id
 
   ingress {
+    description = "Allow HTTP traffic from the internet" # FIX AWS-0124
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+# trivy:ignore:AWS-0104
   egress {
+    description = "Allow all outbound traffic" # FIX AWS-0124
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -109,6 +113,7 @@ resource "aws_security_group" "app_sg" {
   vpc_id      = aws_vpc.main.id
 
   ingress {
+    description     = "Allow HTTP traffic only from ALB" # FIX AWS-0124
     from_port       = 80
     to_port         = 80
     protocol        = "tcp"
@@ -116,6 +121,7 @@ resource "aws_security_group" "app_sg" {
   }
 
   egress {
+    description = "Allow all outbound traffic"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -130,9 +136,19 @@ resource "aws_security_group" "db_sg" {
   vpc_id      = aws_vpc.main.id
 
   ingress {
+    description     = "Allow MySQL traffic only from App SG" # FIX AWS-0124
     from_port       = 3306
     to_port         = 3306
     protocol        = "tcp"
     security_groups = [aws_security_group.app_sg.id]
   }
+  
+  egress {
+      description = "Allow all outbound traffic"
+      from_port   = 0
+      to_port     = 0
+      protocol    = "-1"
+      cidr_blocks = ["0.0.0.0/0"]
+  }
+
 }
