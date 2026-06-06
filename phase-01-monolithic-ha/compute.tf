@@ -1,7 +1,7 @@
 # --- APPLICATION LOAD BALANCER ---
 resource "aws_lb" "app_alb" {
   name               = "phase1-app-alb"
-  internal           = false
+  internal           = true
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
   subnets            = [aws_subnet.public_1a.id, aws_subnet.public_1b.id]
