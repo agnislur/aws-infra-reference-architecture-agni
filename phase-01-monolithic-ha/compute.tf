@@ -1,10 +1,11 @@
 # --- APPLICATION LOAD BALANCER ---
 resource "aws_lb" "app_alb" {
   name               = "phase1-app-alb"
-  internal           = true
+  internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
   subnets            = [aws_subnet.public_1a.id, aws_subnet.public_1b.id]
+  drop_invalid_header_fields = true
 }
 
 resource "aws_lb_target_group" "app_tg" {
@@ -44,6 +45,11 @@ resource "aws_launch_template" "app_lt" {
   network_interfaces {
     security_groups             = [aws_security_group.app_sg.id]
     associate_public_ip_address = false 
+  }
+
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
   }
 
   user_data = base64encode(<<-EOF
