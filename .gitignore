@@ -1,8 +1,14 @@
+**/.terraform/*
+
 # Mengabaikan file yang berisi kredensial sensitif
 *.tfvars
+*.tfvars.json
 terraform.tfvars
 
 # Mengabaikan file state lokal Terraform (opsional tapi sangat disarankan)
 .terraform/
 *.tfstate
+*.tfstate.*
 *.tfstate.backup
+
+.terraform.lock.hcl
