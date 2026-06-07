@@ -1,6 +1,6 @@
 resource "aws_db_subnet_group" "db_subnet_group" {
   name       = "phase1-db-subnet-group"
-  subnet_ids = [aws_subnet.private_db_1a.id, aws_subnet.private_db_1b.id]
+  subnet_ids = [aws_subnet.private_db_3a.id, aws_subnet.private_db_3b.id]
   tags       = { Name = "phase1-db-subnet-group" }
 }
 

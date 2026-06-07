@@ -4,7 +4,7 @@ resource "aws_lb" "app_alb" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb_sg.id]
-  subnets            = [aws_subnet.public_1a.id, aws_subnet.public_1b.id]
+  subnets            = [aws_subnet.public_3a.id, aws_subnet.public_3b.id]
   drop_invalid_header_fields = true
 }
 
@@ -40,7 +40,7 @@ resource "aws_lb_listener" "http_listener" {
 # trivy:ignore:AWS-0053
 resource "aws_launch_template" "app_lt" {
   name_prefix   = "phase1-app-lt-"
-  image_id      = "ami-01811d4912b4ccb26" # Ubuntu 22.04 LTS (ap-southeast-1)
+  image_id      = "ami-038788ccdf113ed0e" # Amazon Linux 2023 (ap-southeast-3)
   instance_type = "t3.micro"               # Free Tier Eligible
 
   network_interfaces {
@@ -63,7 +63,7 @@ resource "aws_launch_template" "app_lt" {
 
 resource "aws_autoscaling_group" "app_asg" {
   name                = "phase1-app-asg"
-  vpc_zone_identifier = [aws_subnet.private_app_1a.id, aws_subnet.private_app_1b.id]
+  vpc_zone_identifier = [aws_subnet.private_app_3a.id, aws_subnet.private_app_3b.id]
   desired_capacity    = 2
   max_size            = 4
   min_size            = 2

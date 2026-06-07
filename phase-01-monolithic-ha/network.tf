@@ -15,50 +15,50 @@ resource "aws_internet_gateway" "igw" {
 
 # --- SUBNETS (Multi-AZ) ---
 # Public Subnets (Tier 1 - Load Balancer)
-resource "aws_subnet" "public_1a" {
+resource "aws_subnet" "public_3a" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
-  availability_zone       = "ap-southeast-1a"
+  availability_zone       = "ap-southeast-3a"
   map_public_ip_on_launch = true
-  tags                    = { Name = "phase1-public-1a" }
+  tags                    = { Name = "phase1-public-3a" }
 }
 
-resource "aws_subnet" "public_1b" {
+resource "aws_subnet" "public_3b" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.2.0/24"
-  availability_zone       = "ap-southeast-1b"
+  availability_zone       = "ap-southeast-3b"
   map_public_ip_on_launch = true
-  tags                    = { Name = "phase1-public-1b" }
+  tags                    = { Name = "phase1-public-3b" }
 }
 
 # Private Application Subnets (Tier 2 - EC2 Instances)
-resource "aws_subnet" "private_app_1a" {
+resource "aws_subnet" "private_app_3a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.3.0/24"
-  availability_zone = "ap-southeast-1a"
-  tags              = { Name = "phase1-private-app-1a" }
+  availability_zone = "ap-southeast-3a"
+  tags              = { Name = "phase1-private-app-3a" }
 }
 
-resource "aws_subnet" "private_app_1b" {
+resource "aws_subnet" "private_app_3b" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.4.0/24"
-  availability_zone = "ap-southeast-1b"
-  tags              = { Name = "phase1-private-app-1b" }
+  availability_zone = "ap-southeast-3b"
+  tags              = { Name = "phase1-private-app-3b" }
 }
 
 # Private Database Subnets (Tier 3 - RDS MySQL)
-resource "aws_subnet" "private_db_1a" {
+resource "aws_subnet" "private_db_3a" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.5.0/24"
-  availability_zone = "ap-southeast-1a"
-  tags              = { Name = "phase1-private-db-1a" }
+  availability_zone = "ap-southeast-3a"
+  tags              = { Name = "phase1-private-db-3a  " }
 }
 
-resource "aws_subnet" "private_db_1b" {
+resource "aws_subnet" "private_db_3b" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.6.0/24"
-  availability_zone = "ap-southeast-1b"
-  tags              = { Name = "phase1-private-db-1b" }
+  availability_zone = "ap-southeast-3b"
+  tags              = { Name = "phase1-private-db-3b" }
 }
 
 # --- ROUTING ---
@@ -71,13 +71,13 @@ resource "aws_route_table" "public_rt" {
   tags = { Name = "phase1-public-rt" }
 }
 
-resource "aws_route_table_association" "public_1a_assoc" {
-  subnet_id      = aws_subnet.public_1a.id
+resource "aws_route_table_association" "public_3a_assoc" {
+  subnet_id      = aws_subnet.public_3a.id
   route_table_id = aws_route_table.public_rt.id
 }
 
-resource "aws_route_table_association" "public_1b_assoc" {
-  subnet_id      = aws_subnet.public_1b.id
+resource "aws_route_table_association" "public_3b_assoc" {
+  subnet_id      = aws_subnet.public_3b.id
   route_table_id = aws_route_table.public_rt.id
 }
 
