@@ -15,7 +15,7 @@ resource "aws_lb_target_group" "app_tg" {
   vpc_id   = aws_vpc.main.id
 
   health_check {
-    path                = "/"
+    path                = "/health"
     port                = "80"
     healthy_threshold   = 3
     unhealthy_threshold = 3
@@ -45,7 +45,7 @@ resource "aws_launch_template" "app_lt" {
 
   network_interfaces {
     security_groups             = [aws_security_group.app_sg.id]
-    associate_public_ip_address = false 
+    associate_public_ip_address = true 
   }
 
   metadata_options {
@@ -53,17 +53,84 @@ resource "aws_launch_template" "app_lt" {
     http_tokens   = "required"
   }
 
-  user_data = base64encode(<<-EOF
+  monitoring {
+    enabled = true
+  }
+
+user_data = base64encode(<<-EOF
               #!/bin/bash
-              echo "<h1>Hello World! Ini adalah halaman web High Availability Phase 1</h1>" > index.html
-              python3 -m http.server 80 &
+              
+              # 1. Update OS dan Install Docker
+              dnf update -y
+              dnf install -y docker
+              systemctl start docker
+              systemctl enable docker
+              # 2. Setup Direktori Aplikasi
+              mkdir -p /home/ubuntu/app
+              cd /home/ubuntu/app
+
+              # 3. Buat file package.json untuk Node.js
+              cat << 'APP_EOF' > package.json
+              {
+                "name": "ha-api-phase1",
+                "version": "1.0.0",
+                "main": "server.js",
+                "dependencies": {
+                  "express": "^4.18.2"
+                }
+              }
+              APP_EOF
+
+              # 4. Buat file server.js (Real-world API sederhana)
+              cat << 'APP_EOF' > server.js
+              const express = require('express');
+              const app = express();
+              const port = 80;
+
+              // Endpoint Health Check: Sangat penting untuk AWS ALB Target Group
+              app.get('/health', (req, res) => {
+                  res.status(200).send('OK');
+              });
+
+              // Endpoint API utama: Mensimulasikan delay database
+              app.get('/api/data', (req, res) => {
+                  // Simulasi proses komputasi atau query DB selama 50ms
+                  setTimeout(() => {
+                      res.json({
+                          message: "Hello dari Dockerized Node.js API!",
+                          environment: "Production-Ready Phase 1",
+                          timestamp: new Date().toISOString()
+                      });
+                  }, 50); 
+              });
+
+              app.listen(port, () => {
+                  console.log(`App listening on port $${port}`);
+              });
+              APP_EOF
+
+              # 5. Buat Dockerfile
+              cat << 'APP_EOF' > Dockerfile
+              # Gunakan image Alpine yang ringan
+              FROM node:18-alpine
+              WORKDIR /usr/src/app
+              COPY package.json ./
+              RUN npm install --production
+              COPY server.js ./
+              EXPOSE 80
+              CMD [ "node", "server.js" ]
+              APP_EOF
+
+              # 6. Build dan Run Docker Container
+              docker build -t phase1-api:latest .
+              docker run -d -p 80:80 --name my-api --restart always phase1-api:latest
               EOF
   )
 }
 
 resource "aws_autoscaling_group" "app_asg" {
   name                = "phase1-app-asg"
-  vpc_zone_identifier = [aws_subnet.private_app_3a.id, aws_subnet.private_app_3b.id]
+  vpc_zone_identifier = [aws_subnet.public_3a.id, aws_subnet.public_3b.id]
   desired_capacity    = 2
   max_size            = 4
   min_size            = 2
@@ -76,5 +143,19 @@ resource "aws_autoscaling_group" "app_asg" {
 
   lifecycle {
     create_before_destroy = true
+  }
+}
+
+resource "aws_autoscaling_policy" "app_cpu_scaling_policy" {
+  name                   = "phase1-app-cpu-scaling-policy"
+  autoscaling_group_name = aws_autoscaling_group.app_asg.name
+  policy_type            = "TargetTrackingScaling"
+
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ASGAverageCPUUtilization"
+    }
+
+    target_value = 50.0
   }
 }
