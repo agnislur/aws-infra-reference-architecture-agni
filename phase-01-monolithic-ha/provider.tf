@@ -19,3 +19,13 @@ provider "aws" {
     }
   }
 }
+
+terraform {
+  backend "s3" {
+    bucket         = "agni-tf-remote-state-bucket-yosh123" # Samakan dengan nama bucket di Langkah 2
+    key            = "phase-01/terraform.tfstate"      # Path state file di dalam S3
+    region         = "ap-southeast-3"
+    dynamodb_table = "agni-tf-state-locks"
+    encrypt        = true
+  }
+}
