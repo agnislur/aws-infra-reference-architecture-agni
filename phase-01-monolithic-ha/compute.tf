@@ -57,6 +57,20 @@ resource "aws_launch_template" "app_lt" {
     enabled = true
   }
 
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "phase1-app-instance"
+    }
+  }
+
+  tag_specifications {
+    resource_type = "volume"
+    tags = {
+      Name = "phase1-app-volume"
+    }
+  }
+
 user_data = base64encode(<<-EOF
               #!/bin/bash
               
@@ -143,6 +157,12 @@ resource "aws_autoscaling_group" "app_asg" {
 
   lifecycle {
     create_before_destroy = true
+  }
+
+  tag {
+    key                 = "Name"
+    value               = "phase1-app-instance"
+    propagate_at_launch = true
   }
 }
 
