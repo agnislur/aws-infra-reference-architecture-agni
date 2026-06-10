@@ -17,6 +17,11 @@ resource "aws_db_instance" "main_db" {
   vpc_security_group_ids = [aws_security_group.db_sg.id]
   
   multi_az               = false 
+# issue #7
+  storage_encrypted            = true
+  backup_retention_period      = 7
+  deletion_protection          = true
+  performance_insights_enabled = true
   
   skip_final_snapshot    = true
 }
