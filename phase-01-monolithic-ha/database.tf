@@ -21,7 +21,6 @@ resource "aws_db_instance" "main_db" {
   storage_encrypted            = true
   backup_retention_period      = 7
   deletion_protection          = true
-  performance_insights_enabled = true
   
   skip_final_snapshot    = true
 }
