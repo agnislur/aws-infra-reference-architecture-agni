@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: "📥 Checkout repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: "🔍 Run Trivy IaC scan - ${{ matrix.phase.label }}"
         uses: aquasecurity/trivy-action@v0.36.0
@@ -73,7 +73,7 @@ jobs:
 
     steps:
       - name: "📥 Checkout repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: "🔍 Run Trivy filesystem scan"
         uses: aquasecurity/trivy-action@v0.36.0
@@ -113,7 +113,7 @@ jobs:
 
     steps:
       - name: "📥 Checkout repository"
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: "🔍 Trivy scan untuk PR comment"
         uses: aquasecurity/trivy-action@v0.36.0
@@ -127,7 +127,7 @@ jobs:
           output: "trivy-pr-summary.txt"
 
       - name: "💬 Post komentar ke PR"
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         if: always()
         with:
           script: |
